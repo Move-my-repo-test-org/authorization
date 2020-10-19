@@ -26,3 +26,8 @@ input {
 .page-container {
     margin-top: 20vh;
 }
+
+.errorMessage {
+    font-size: 10px;
+    color: red;
+}

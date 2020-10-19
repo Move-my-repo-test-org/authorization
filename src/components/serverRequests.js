@@ -9,9 +9,11 @@ const signUpRequest = async (userData) => {
         },
         body: JSON.stringify(userData)
     });
-    if (rawResponse.status === 200) {
-        const content = await rawResponse.json();
-        return content;
+    const content = await rawResponse.json();
+    if (content.status === "Ok") {
+        return 'ok';
+    } else {
+        return 'error';
     }
 }
 
@@ -19,10 +21,13 @@ const signInRequest = async (email, pass) => {
     const rawResponse = await fetch(`${baseUrl}/login?email=${email}&password=${pass}`, {
         method: 'POST'
     });
-    if (rawResponse.status === 200) {
-        const content = await rawResponse.json();
+    const content = await rawResponse.json();
+    if (content.statusCode === 200) {
         localStorage.setItem('token', content.body.access_token);
         localStorage.setItem('refreshToken', content.body.refresh_token);
+        return 'ok';
+    } else {
+        return 'error';
     }
 }
 
@@ -33,11 +38,13 @@ const getRefreshedToken = async () => {
             'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`,
         }
     });
-    if (rawResponse.status === 200) {
-        const content = await rawResponse.json();
+    const content = await rawResponse.json();
+    if (content.statusCode === 200) {
         localStorage.setItem('token', content.body.access_token);
         localStorage.setItem('refreshToken', content.body.refresh_token);
         return getMe();
+    } else {
+        return 'error';
     }
 }
 
@@ -51,13 +58,16 @@ const getMe = async () => {
     const content = await rawResponse.json();
     if (content.code === 1002) {
         return 'notAuthorized';
-    } else if (content.body.code === 1006) {
-        return 'expiredToken';
-    } else if (content.body.code === 1004) {
-        return 'emptyToken';
-    } else {
-        return 'authorized';
     }
+    switch (content.body.code) {
+        case 1006:
+            return 'expiredToken';
+        case 1004:
+            return 'emptyToken';
+        default:
+            return 'authorized';
+    }
+
 
 }
 
